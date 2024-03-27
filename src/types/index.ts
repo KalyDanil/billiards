@@ -5,14 +5,16 @@ export interface ICanvasObj {
   height: number;
 }
 
-export interface IBall extends ICanvasObj {
+export interface IBall {
   id: number;
-  color: string;
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
   speed: number;
-  vector: {
-    x: number;
-    y: number;
-  };
+  color: string;
+  radius: number;
+  draw: (ctx: CanvasRenderingContext2D) => void;
 }
 
 export interface IVector {
@@ -23,4 +25,9 @@ export interface IVector {
 export interface ITimer {
   ballId: number;
   value: NodeJS.Timer | null;
+}
+
+export interface IBallsStatus {
+  id: number;
+  isMoving: boolean;
 }
