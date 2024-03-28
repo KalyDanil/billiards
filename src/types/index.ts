@@ -1,10 +1,3 @@
-export interface ICanvasObj {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
 export interface IBall {
   id: number;
   x: number;
@@ -17,14 +10,9 @@ export interface IBall {
   draw: (ctx: CanvasRenderingContext2D) => void;
 }
 
-export interface IVector {
+export interface IPoint {
   x: number;
   y: number;
-}
-
-export interface ITimer {
-  ballId: number;
-  value: NodeJS.Timer | null;
 }
 
 export interface IBallsStatus {

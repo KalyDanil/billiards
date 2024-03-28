@@ -1,5 +1,10 @@
 import { IBall } from "../../types";
 
+export const canvasData = {
+  width: 300,
+  height: 500,
+};
+
 export const ballsData: IBall[] = [
   {
     id: 0,
@@ -9,7 +14,7 @@ export const ballsData: IBall[] = [
     vy: 0,
     speed: 0,
     radius: 7,
-    color: "blue",
+    color: "#0D47CA",
     draw(ctx: CanvasRenderingContext2D) {
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
@@ -26,7 +31,7 @@ export const ballsData: IBall[] = [
     vy: 0,
     speed: 0,
     radius: 10,
-    color: "red",
+    color: "#FF0000",
     draw(ctx: CanvasRenderingContext2D) {
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
@@ -43,7 +48,7 @@ export const ballsData: IBall[] = [
     vy: 0,
     speed: 0,
     radius: 8,
-    color: "yellow",
+    color: "#FFFF00",
     draw(ctx: CanvasRenderingContext2D) {
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
@@ -60,7 +65,7 @@ export const ballsData: IBall[] = [
     vy: 0,
     speed: 0,
     radius: 12,
-    color: "orange",
+    color: "#FF9900",
     draw(ctx: CanvasRenderingContext2D) {
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
@@ -77,7 +82,7 @@ export const ballsData: IBall[] = [
     vy: 0,
     speed: 0,
     radius: 9,
-    color: "orange",
+    color: "#FF00FF",
     draw(ctx: CanvasRenderingContext2D) {
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
@@ -94,7 +99,7 @@ export const ballsData: IBall[] = [
     vy: 0,
     speed: 0,
     radius: 6,
-    color: "orange",
+    color: "#9900FF",
     draw(ctx: CanvasRenderingContext2D) {
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
@@ -111,7 +116,7 @@ export const ballsData: IBall[] = [
     vy: 0,
     speed: 0,
     radius: 15,
-    color: "orange",
+    color: "#FFFFFF",
     draw(ctx: CanvasRenderingContext2D) {
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
@@ -128,7 +133,7 @@ export const ballsData: IBall[] = [
     vy: 0,
     speed: 0,
     radius: 13,
-    color: "red",
+    color: "#660000",
     draw(ctx: CanvasRenderingContext2D) {
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
@@ -145,7 +150,7 @@ export const ballsData: IBall[] = [
     vy: 0,
     speed: 0,
     radius: 9,
-    color: "red",
+    color: "#00FFFF",
     draw(ctx: CanvasRenderingContext2D) {
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);
@@ -162,7 +167,7 @@ export const ballsData: IBall[] = [
     vy: 0,
     speed: 0,
     radius: 11,
-    color: "black",
+    color: "#000000",
     draw(ctx: CanvasRenderingContext2D) {
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, true);

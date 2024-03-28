@@ -1,0 +1,32 @@
+.help {
+  position: relative;
+}
+
+.help__icon {
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+}
+
+.help__closeIcon {
+  width: 20px;
+  height: auto;
+  position: absolute;
+  top: 0;
+  right: 0;
+  cursor: pointer;
+}
+
+.help__info {
+  width: 200px;
+  position: absolute;
+  top: 30px;
+  left: 15px;
+  padding: 5px;
+  background-color: black;
+  border: 1px solid;
+  border-radius: 10px;
+  border-top-left-radius: unset;
+  font-size: 14px;
+  color: white;
+}

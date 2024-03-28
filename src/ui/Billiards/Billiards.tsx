@@ -1,12 +1,18 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { IBall, IBallsStatus, ICanvasObj, ITimer, IVector } from "../../types";
-import { ballsData } from "./data";
+import { useCallback, useState } from "react";
+import { IBall, IBallsStatus, IPoint } from "../../types";
+import { ballsData, canvasData } from "./data";
 import "./Billiards.css";
+import BallMenu from "../BallMenu";
+import Help from "../Help";
 
 const Billiards = () => {
-  // const canvasRef = useRef<HTMLCanvasElement>(null);
-
   const [canvas, setCanvas] = useState<HTMLCanvasElement>();
+
+  const [menuIsOpen, setMenuIsOpen] = useState<boolean>(false);
+  const [editingBallIndex, setEditingBallIndex] = useState<number>(-1);
+
+  const readyStatus = "Нанесите удар";
+  const waitingStatus = "Ожидание конца хода...";
 
   let balls = [...ballsData];
 
@@ -14,19 +20,9 @@ const Billiards = () => {
 
   let raf: number;
 
-  const canvasData = {
-    width: 300,
-    height: 500,
-    top: 10,
-    left: 10,
-  };
-
   const speedLossesDueToPush = 1;
-  const startSpeed = 6;
+  const startSpeed = 8;
   const speedLossesDueToFriction = 0.01;
-
-  const readyStatus = "Нанесите удар";
-  const waitingStatus = "Идет удар";
 
   let chosenBallIndex = -1;
 
@@ -44,6 +40,186 @@ const Billiards = () => {
     }
   }, []);
 
+  const findBallIndexByClick = (
+    e: React.MouseEvent<HTMLCanvasElement, MouseEvent>
+  ) => {
+    if (!canvas) {
+      return -1;
+    }
+
+    return balls.findIndex(
+      (ball) =>
+        Math.pow(ball.x + canvas.getBoundingClientRect().x - e.pageX, 2) +
+          Math.pow(ball.y + canvas.getBoundingClientRect().y - e.pageY, 2) <=
+        Math.pow(ball.radius, 2)
+    );
+  };
+
+  const onContextMenu = (
+    e: React.MouseEvent<HTMLCanvasElement, MouseEvent>
+  ) => {
+    e.preventDefault();
+
+    chosenBallIndex = findBallIndexByClick(e);
+
+    if (chosenBallIndex > -1 && !blowIsMade) {
+      setEditingBallIndex(chosenBallIndex);
+      setMenuIsOpen(true);
+    }
+  };
+
+  const onMouseDown = (e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
+    if (blowIsMade || !canvas) {
+      return;
+    }
+
+    chosenBallIndex = findBallIndexByClick(e);
+  };
+
+  const drawArrow = (start: IPoint, end: IPoint) => {
+    if (!canvas) {
+      return;
+    }
+
+    const ctx = canvas.getContext("2d");
+
+    if (!ctx) {
+      return;
+    }
+
+    const arrowHeadWidth = 15;
+
+    const PI = Math.PI;
+    const degreesInRadians225 = (225 * PI) / 180;
+    const degreesInRadians135 = (135 * PI) / 180;
+
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+    const angle = Math.atan2(dy, dx);
+
+    const x225 = end.x + arrowHeadWidth * Math.cos(angle + degreesInRadians225);
+    const y225 = end.y + arrowHeadWidth * Math.sin(angle + degreesInRadians225);
+    const x135 = end.x + arrowHeadWidth * Math.cos(angle + degreesInRadians135);
+    const y135 = end.y + arrowHeadWidth * Math.sin(angle + degreesInRadians135);
+
+    ctx.clearRect(0, 0, canvasData.width, canvasData.height);
+
+    balls.forEach((item) => item.draw(ctx));
+
+    ctx.beginPath();
+
+    ctx.moveTo(start.x, start.y);
+    ctx.lineTo(end.x, end.y);
+
+    ctx.moveTo(end.x, end.y);
+    ctx.lineTo(x225, y225);
+
+    ctx.moveTo(end.x, end.y);
+    ctx.lineTo(x135, y135);
+
+    ctx.stroke();
+  };
+
+  const onMouseMove = (e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
+    if (chosenBallIndex === -1 || blowIsMade || !canvas) {
+      return;
+    }
+
+    const chosenBall = balls[chosenBallIndex];
+    drawArrow(
+      {
+        x: chosenBall.x,
+        y: chosenBall.y,
+      },
+      {
+        x: e.pageX - canvas.getBoundingClientRect().x,
+        y: e.pageY - canvas.getBoundingClientRect().y,
+      }
+    );
+  };
+
+  const onMouseLeave = () => {
+    if (!canvas) {
+      return;
+    }
+
+    const ctx = canvas.getContext("2d");
+
+    if (!ctx) {
+      return;
+    }
+
+    ctx.clearRect(0, 0, canvasData.width, canvasData.height);
+
+    balls.forEach((item) => item.draw(ctx));
+
+    chosenBallIndex = -1;
+  };
+
+  const onMouseUp = (e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
+    if (chosenBallIndex === -1 || blowIsMade || !canvas) {
+      return;
+    }
+    const chosenBall = balls[chosenBallIndex];
+
+    const vector = {
+      x: e.pageX - (chosenBall.x + canvas.getBoundingClientRect().x),
+      y: e.pageY - (chosenBall.y + canvas.getBoundingClientRect().y),
+    };
+
+    const getVectorSize = (x: number, y: number) => {
+      return Math.round(Math.sqrt(x * x + y * y));
+    };
+
+    chosenBall.vx = vector.x / getVectorSize(vector.x, vector.y);
+    chosenBall.vy = vector.y / getVectorSize(vector.x, vector.y);
+
+    chosenBall.speed = startSpeed;
+
+    blowIsMade = true;
+
+    changeGameStatus(waitingStatus);
+
+    raf = window.requestAnimationFrame(drawMove);
+  };
+
+  const changeGameStatus = (status: string) => {
+    const gameStatus = document.getElementById("gameStatus");
+    if (gameStatus) {
+      gameStatus.innerText = status;
+    }
+  };
+
+  const drawMove = () => {
+    const ctx = canvas?.getContext("2d");
+
+    if (!ctx) {
+      return;
+    }
+
+    ctx.clearRect(0, 0, canvasData.width, canvasData.height);
+
+    let ballsStatus: IBallsStatus[] = [];
+
+    balls.forEach((item) => {
+      item.draw(ctx);
+      ballsStatus.push({
+        id: item.id,
+        isMoving: calcBallMove(item),
+      });
+    });
+
+    if (ballsStatus.find((item) => item.isMoving)) {
+      raf = window.requestAnimationFrame(drawMove);
+      return;
+    }
+
+    blowIsMade = false;
+    chosenBallIndex = -1;
+    window.cancelAnimationFrame(raf);
+    changeGameStatus(readyStatus);
+  };
+
   const checkCollisionWithBalls = (ball: IBall) => {
     const getDistance = (ball1: IBall, ball2: IBall) => {
       return Math.sqrt(
@@ -52,7 +228,7 @@ const Billiards = () => {
       );
     };
 
-    const pushedBallIndex = balls.findIndex((item) => {
+    const pushedBall = balls.find((item) => {
       if (ball.id === item.id) {
         return false;
       }
@@ -60,19 +236,15 @@ const Billiards = () => {
       return getDistance(ball, item) <= ball.radius + item.radius;
     });
 
-    if (pushedBallIndex > -1) {
-      const pushedBall = { ...balls[pushedBallIndex] };
+    if (pushedBall) {
+      pushedBall.vx += ball.vx;
+      pushedBall.vy += ball.vy;
+      pushedBall.speed = Math.abs(pushedBall.speed - ball.speed) - 0.5;
 
-      pushedBall.vx = ball.vx;
-      pushedBall.vy = ball.vy;
-      pushedBall.speed += ball.speed - 1;
-
-      balls.splice(pushedBallIndex, 1, pushedBall);
-
-      return true;
+      ball.vx = -ball.vx;
+      ball.vy = -ball.vy;
+      ball.speed -= speedLossesDueToPush;
     }
-
-    return false;
   };
 
   const checkCollisionWithBorders = (ball: IBall) => {
@@ -97,17 +269,17 @@ const Billiards = () => {
     let isMoving = true;
 
     if (ball.speed <= 0.5) {
+      ball.speed = 0;
+      ball.vx = 0;
+      ball.vy = 0;
+
       isMoving = false;
       return isMoving;
     }
 
     checkCollisionWithBorders(ball);
 
-    if (checkCollisionWithBalls(ball)) {
-      ball.vx = -ball.vx;
-      ball.vy = -ball.vy;
-      ball.speed -= speedLossesDueToPush;
-    }
+    checkCollisionWithBalls(ball);
 
     ball.speed -= ball.speed * speedLossesDueToFriction;
 
@@ -117,118 +289,35 @@ const Billiards = () => {
     return isMoving;
   };
 
-  const animate = () => {
-    const ctx = canvas?.getContext("2d");
-
-    if (!ctx) {
-      return;
-    }
-
-    ctx.clearRect(0, 0, canvasData.width, canvasData.height);
-
-    const ballsStatus: IBallsStatus[] = [];
-
-    balls.forEach((item) => {
-      item.draw(ctx);
-      ballsStatus.push({
-        id: item.id,
-        isMoving: calcBallMove(item),
-      });
-    });
-
-    if (ballsStatus.find((item) => item.isMoving)) {
-      raf = window.requestAnimationFrame(animate);
-      return;
-    }
-
-    blowIsMade = false;
-    chosenBallIndex = -1;
-    window.cancelAnimationFrame(raf);
-    changeGameStatus(readyStatus);
-  };
-
-  const onClickReset = () => {
-    if (!canvas) {
-      return;
-    }
-    const ctx = canvas.getContext("2d");
-    if (!ctx) {
-      return;
-    }
-    ctx.clearRect(0, 0, canvasData.width, canvasData.height);
-    balls = [...ballsData];
-    balls.forEach((item) => item.draw(ctx));
-
-    blowIsMade = false;
-    chosenBallIndex = -1;
-    changeGameStatus(readyStatus);
-    window.cancelAnimationFrame(raf);
-  };
-
-  const changeGameStatus = (status: string) => {
-    const gameStatus = document.getElementById("gameStatus");
-
-    if (gameStatus) {
-      gameStatus.innerText = status;
-    }
-  };
-
-  const onMouseDown = (e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
-    if (blowIsMade) {
-      return;
-    }
-
-    chosenBallIndex = balls.findIndex(
-      (ball) =>
-        Math.pow(ball.x - e.pageX, 2) + Math.pow(ball.y - e.pageY, 2) <=
-        Math.pow(ball.radius, 2)
-    );
-  };
-
-  const onMouseUp = (e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) => {
-    if (chosenBallIndex === -1 || blowIsMade || !canvas) {
-      return;
-    }
-
-    const chosenBall = { ...balls[chosenBallIndex] };
-
-    const vector = { x: e.pageX - chosenBall.x, y: e.pageY - chosenBall.y };
-
-    const getVectorSize = (x: number, y: number) => {
-      return Math.round(Math.sqrt(x * x + y * y));
-    };
-
-    chosenBall.vx = vector.x / getVectorSize(vector.x, vector.y);
-    chosenBall.vy = vector.y / getVectorSize(vector.x, vector.y);
-
-    chosenBall.speed = startSpeed;
-
-    balls.splice(chosenBallIndex, 1, chosenBall);
-
-    blowIsMade = true;
-
-    changeGameStatus(waitingStatus);
-
-    raf = window.requestAnimationFrame(animate);
-  };
-
   return (
     <div className="billiards">
+      {menuIsOpen && (
+        <BallMenu
+          ballIndex={editingBallIndex}
+          menuIsOpen={menuIsOpen}
+          setMenuIsOpen={setMenuIsOpen}
+          canvas={canvas}
+          balls={balls}
+        />
+      )}
+      <h1 className="billiards__header">
+        Бильярд <Help />
+      </h1>
       <canvas
         ref={canvasRef}
-        style={{
-          border: "2px solid",
-          backgroundColor: "green",
-        }}
+        id="canvas"
+        className="billiards__canvas"
         width={canvasData.width}
         height={canvasData.height}
         onMouseDown={onMouseDown}
         onMouseUp={onMouseUp}
+        onMouseMove={onMouseMove}
+        onMouseLeave={onMouseLeave}
+        onContextMenu={onContextMenu}
       />
-      <div id="gameStatus">{readyStatus}</div>
-      <button id="resetButton" onClick={onClickReset}>
-        Перезапустить
-      </button>
+      <div id="gameStatus" className="billiards__gameStatus">
+        {readyStatus}
+      </div>
     </div>
   );
 };

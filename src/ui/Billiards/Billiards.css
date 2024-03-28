@@ -1,5 +1,19 @@
 .billiards {
-  width: 300px;
   display: flex;
   flex-direction: column;
+  align-items: center;
+}
+
+.billiards__header {
+  display: flex;
+}
+
+.billiards__canvas {
+  margin-bottom: 10px;
+  border: 2px solid;
+  background-color: green;
+}
+
+.billiards__gameStatus {
+  margin-bottom: 10px;
 }

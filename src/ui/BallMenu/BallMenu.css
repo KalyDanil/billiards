@@ -1,0 +1,27 @@
+.ballMenu {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.5;
+  position: absolute;
+  padding: 12px;
+  background-color: #000;
+  border: 1px solid;
+  border-radius: 10px;
+  border-top-left-radius: unset;
+  color: white;
+}
+
+.ballMenu__header {
+  font-size: 18px;
+  border-bottom: 1px solid;
+  margin-bottom: 10px;
+}
+
+.ballMenu__closeIcon {
+  width: 20px;
+  height: auto;
+  position: absolute;
+  top: 0;
+  right: 0;
+  cursor: pointer;
+}
